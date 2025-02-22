@@ -1,5 +1,7 @@
+
 import React, { useState } from "react";
-import { View, Text, TextInput, Button } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { TextInput, Button, Title, Subheading, Snackbar } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from 'react-native';
 
@@ -7,6 +9,8 @@ export default function AddingNewLocation({ navigation }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [rating, setRating] = useState("");
+  const [visibleSnackbar, setVisibleSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const saveLocation = async () => {
     if (!name || !rating) {
@@ -40,20 +44,67 @@ export default function AddingNewLocation({ navigation }) {
       // Tallennetaan päivitetty lista takaisin AsyncStorageen
       await AsyncStorage.setItem('locations', JSON.stringify(locations));
 
+      // Näytetään ilmoitus onnistuneesta tallennuksesta
+      setSnackbarMessage("Kohde lisätty onnistuneesti!");
+      setVisibleSnackbar(true);
+
       // Navigoidaan takaisin LocationsList-näkymään
-      navigation.goBack();
+      setTimeout(() => {
+        navigation.goBack();
+      }, 2000);
     } catch (error) {
       console.error('Virhe tallennettaessa kohdetta:', error);
+      Alert.alert('Virhe', 'Kohteen tallentaminen epäonnistui');
     }
   };
 
   return (
-    <View>
-      <Text>Lisää uusi matkakohde:</Text>
-      <TextInput placeholder="Nimi" onChangeText={setName} value={name} />
-      <TextInput placeholder="Kuvaus" onChangeText={setDescription} value={description} />
-      <TextInput placeholder="Arvio (1-5)" onChangeText={setRating} value={rating} keyboardType="numeric" />
-      <Button title="Tallenna" onPress={saveLocation} />
+    <View style={styles.container}>
+      <Title>Add New Travel Location:</Title>
+
+      <TextInput
+        label="Name"
+        value={name}
+        onChangeText={setName}
+        style={styles.input}
+      />
+      <TextInput
+        label="Description"
+        value={description}
+        onChangeText={setDescription}
+        style={styles.input}
+      />
+      <TextInput
+        label="Rate (1-5)"
+        value={rating}
+        onChangeText={setRating}
+        keyboardType="numeric"
+        style={styles.input}
+      />
+      <Button mode="contained" onPress={saveLocation} style={styles.button}>
+        Save
+      </Button>
+
+      <Snackbar
+        visible={visibleSnackbar}
+        onDismiss={() => setVisibleSnackbar(false)}
+        duration={Snackbar.DURATION_SHORT}
+      >
+        {snackbarMessage}
+      </Snackbar>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  input: {
+    marginBottom: 10,
+  },
+  button: {
+    marginTop: 20,
+  },
+});
