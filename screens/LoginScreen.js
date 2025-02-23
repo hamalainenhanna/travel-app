@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { TextInput, Button, Title, Snackbar } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MaterialCommunityIcons } from "@expo/vector-icons"; 
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
@@ -15,7 +16,7 @@ const LoginScreen = ({ navigation }) => {
       await AsyncStorage.setItem('user', username);
 
       // Näytetään onnistumisviesti
-      setSnackbarMessage('Kirjautuminen onnistui!');
+      setSnackbarMessage('Successful login!');
       setVisibleSnackbar(true);
 
       // Siirretään käyttäjä MainTabs-näkymään
@@ -27,24 +28,27 @@ const LoginScreen = ({ navigation }) => {
       }, 1500);
     } else {
       // Virheellinen kirjautuminen
-      setSnackbarMessage('Väärä käyttäjätunnus tai salasana');
+      setSnackbarMessage('Incorrect username or password');
       setVisibleSnackbar(true);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Title>Kirjautuminen</Title>
+      <View style={styles.titleContainer}>
+        <MaterialCommunityIcons name="login" size={60} color="purple" />
+        <Title style={styles.title} >LOGIN</Title>
+      </View>
 
       <TextInput
-        label="Käyttäjätunnus"
+        label="Username"
         value={username}
         onChangeText={setUsername}
         style={styles.input}
         autoCapitalize="none"
       />
       <TextInput
-        label="Salasana"
+        label="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -52,7 +56,7 @@ const LoginScreen = ({ navigation }) => {
       />
 
       <Button mode="contained" onPress={handleLogin} style={styles.button}>
-        Kirjaudu sisään
+        LOGIN
       </Button>
 
       <Snackbar
@@ -69,18 +73,26 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    marginTop: 180,
     padding: 20,
   },
   input: {
     marginBottom: 10,
   },
   button: {
-    marginTop: 20,
+    marginTop: 30,
   },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  title: {
+    marginLeft: 20,
+    fontSize: 30,
+    color: 'purple',
+    fontWeight: "bold",
+  }
 });
 
 export default LoginScreen;
-
-
-
