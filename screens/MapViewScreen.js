@@ -1,18 +1,16 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 
-export default function MapViewScreen({ route }) {
-  const { locationName } = route.params; 
+export default function MapViewScreen() {
   const [coordinates, setCoordinates] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCoordinates = async () => {
+    const fetchLocation = async () => {
       try {
-        console.log('Haetaan koordinaatit kohteelle:', locationName);
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setErrorMessage('Sijaintilupia ei myönnetty.');
@@ -20,22 +18,18 @@ export default function MapViewScreen({ route }) {
           return;
         }
 
-        const geocodeResult = await Location.geocodeAsync(locationName);
-        if (geocodeResult.length > 0) {
-          const { latitude, longitude } = geocodeResult[0];
-          setCoordinates({ latitude, longitude });
-        } else {
-          setErrorMessage('Paikkaa ei löytynyt');
-        }
+        const { coords } = await Location.getCurrentPositionAsync();
+        const { latitude, longitude } = coords;
+        setCoordinates({ latitude, longitude });
       } catch (error) {
-        setErrorMessage('Virhe geokoodauksessa: ' + error.message);
+        setErrorMessage('Virhe sijainnin hakemisessa: ' + error.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCoordinates();
-  }, [locationName]);
+    fetchLocation();
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
@@ -47,11 +41,11 @@ export default function MapViewScreen({ route }) {
           region={{
             latitude: coordinates.latitude,
             longitude: coordinates.longitude,
-            latitudeDelta: 0.2,
-            longitudeDelta: 0.2,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
           }}
         >
-          <Marker coordinate={coordinates} title={locationName} />
+          <Marker coordinate={coordinates} title="Nykyinen sijainti" />
         </MapView>
       ) : (
         <Text>{errorMessage || 'Ladataan karttaa...'}</Text>
@@ -59,5 +53,6 @@ export default function MapViewScreen({ route }) {
     </View>
   );
 }
+
 
 

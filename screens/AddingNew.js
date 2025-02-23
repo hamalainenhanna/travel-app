@@ -1,14 +1,15 @@
 
-import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { TextInput, Button, Title, Subheading, Snackbar } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from 'react-native';
+import { Rating } from 'react-native-ratings';
 
 export default function AddingNewLocation({ navigation }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [rating, setRating] = useState("");
+  const [rating, setRating] = useState(0);  // Alustetaan rating numerolla
   const [visibleSnackbar, setVisibleSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
@@ -17,40 +18,39 @@ export default function AddingNewLocation({ navigation }) {
       Alert.alert('Nimi ja arvio ovat pakollisia');
       return;
     }
-
-    const ratingNum = Number(rating);
-    if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+  
+    if (rating < 1 || rating > 5) {
       Alert.alert('Arvio tulee olla luku välillä 1-5');
       return;
     }
-
+  
     try {
       const storedLocations = await AsyncStorage.getItem('locations');
       const locations = storedLocations ? JSON.parse(storedLocations) : [];
-
-      // Tarkistetaan, onko kohde jo olemassa
+  
       const isLocationExists = locations.some(location => location.name.toLowerCase() === name.toLowerCase());
       if (isLocationExists) {
         Alert.alert('Virhe', 'Tämä kohde on jo lisätty');
         return;
       }
-
-      // Luodaan uusi kohde
-      const newLocation = { name, description, rating: ratingNum };
-
-      // Lisätään uusi kohde listaan
-      locations.push(newLocation);
-
+  
+      const newLocation = { name, description, rating };
+  
+      // Lisätään uusi kohde listan alkuun
+      locations.unshift(newLocation);
+  
       // Tallennetaan päivitetty lista takaisin AsyncStorageen
       await AsyncStorage.setItem('locations', JSON.stringify(locations));
-
-      // Näytetään ilmoitus onnistuneesta tallennuksesta
+  
       setSnackbarMessage("Kohde lisätty onnistuneesti!");
       setVisibleSnackbar(true);
-
-      // Navigoidaan takaisin LocationsList-näkymään
+  
       setTimeout(() => {
         navigation.goBack();
+        // Tyhjennetään lomakkeen kentät tallennuksen jälkeen
+        setName('');
+        setDescription('');
+        setRating(0);
       }, 2000);
     } catch (error) {
       console.error('Virhe tallennettaessa kohdetta:', error);
@@ -59,40 +59,46 @@ export default function AddingNewLocation({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Title>Add New Travel Location:</Title>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Title style={{ marginBottom: 25 }}>Add New Travel Location:</Title>
 
-      <TextInput
-        label="Name"
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-      />
-      <TextInput
-        label="Description"
-        value={description}
-        onChangeText={setDescription}
-        style={styles.input}
-      />
-      <TextInput
-        label="Rate (1-5)"
-        value={rating}
-        onChangeText={setRating}
-        keyboardType="numeric"
-        style={styles.input}
-      />
-      <Button mode="contained" onPress={saveLocation} style={styles.button}>
-        Save
-      </Button>
+        <TextInput
+          label="Name"
+          value={name}
+          onChangeText={setName}
+          style={styles.input}
+        />
+        <TextInput
+          label="Description"
+          value={description}
+          onChangeText={setDescription}
+          style={styles.input}
+        />
+        
+        <Subheading> </Subheading>
+        <Rating
+          type="star" // Voit käyttää myös muita tyyppejä kuten "heart", "custom" jne.
+          ratingCount={5} // Määrittelee tähtien määrän
+          imageSize={40} // Määrittelee tähtien koon
+          onFinishRating={setRating} // Funktio, joka vie arvion
+          startingValue={rating} // Näyttää käyttäjän nykyisen arvion
+          style={styles.rating} // Lisää tyylit
+        />
 
-      <Snackbar
-        visible={visibleSnackbar}
-        onDismiss={() => setVisibleSnackbar(false)}
-        duration={Snackbar.DURATION_SHORT}
-      >
-        {snackbarMessage}
-      </Snackbar>
-    </View>
+        <Button mode="contained" onPress={saveLocation} style={styles.button} labelStyle={{ fontSize: 20 }}>
+          Save
+        </Button>
+
+        <Snackbar
+          visible={visibleSnackbar}
+          onDismiss={() => setVisibleSnackbar(false)}
+          duration={Snackbar.DURATION_SHORT}
+        >
+          {snackbarMessage}
+        </Snackbar>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -107,4 +113,9 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 20,
   },
+  rating: {
+    marginVertical: 10,
+  },
 });
+
+
