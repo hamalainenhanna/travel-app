@@ -10,7 +10,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     if (username === 'user' && password === 'password') {
-      // Tallennetaan käyttäjä kirjautuneeksi
+     
       await AsyncStorage.setItem('user', username);
   
       navigation.reset({
