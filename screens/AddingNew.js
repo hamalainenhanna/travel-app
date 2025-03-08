@@ -1,50 +1,45 @@
-
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, TouchableWithoutFeedback, Keyboard } from "react-native";
-import { TextInput, Button, Title, Subheading, Snackbar } from "react-native-paper";
+import React, { useState } from "react";
+import { View, StyleSheet, TouchableWithoutFeedback, Keyboard, Alert } from "react-native";
+import { TextInput, Button, Title, Subheading } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Alert } from 'react-native';
 import { Rating } from 'react-native-ratings';
 
 export default function AddingNewLocation({ navigation }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [rating, setRating] = useState(0);  // Alustetaan rating numerolla
-  const [visibleSnackbar, setVisibleSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [rating, setRating] = useState(0);
 
   const saveLocation = async () => {
     if (!name || !rating) {
-      Alert.alert('Nimi ja arvio ovat pakollisia');
+      Alert.alert('Error', 'Name and rating are required.');
       return;
     }
-  
+
     if (rating < 1 || rating > 5) {
-      Alert.alert('Arvio tulee olla luku välillä 1-5');
+      Alert.alert('Error', 'Rating must be a number between 1 and 5');
       return;
     }
-  
+
     try {
       const storedLocations = await AsyncStorage.getItem('locations');
       const locations = storedLocations ? JSON.parse(storedLocations) : [];
-  
+
       const isLocationExists = locations.some(location => location.name.toLowerCase() === name.toLowerCase());
       if (isLocationExists) {
-        Alert.alert('Virhe', 'Tämä kohde on jo lisätty');
+        Alert.alert('Error', 'This location is already added');
         return;
       }
-  
+
       const newLocation = { name, description, rating };
-  
+
       // Lisätään uusi kohde listan alkuun
       locations.unshift(newLocation);
-  
+
       // Tallennetaan päivitetty lista takaisin AsyncStorageen
       await AsyncStorage.setItem('locations', JSON.stringify(locations));
-  
-      setSnackbarMessage("Kohde lisätty onnistuneesti!");
-      setVisibleSnackbar(true);
-  
+
+      Alert.alert('Success', 'Location added successfully!');
+
       setTimeout(() => {
         navigation.goBack();
         // Tyhjennetään lomakkeen kentät tallennuksen jälkeen
@@ -52,9 +47,9 @@ export default function AddingNewLocation({ navigation }) {
         setDescription('');
         setRating(0);
       }, 2000);
+
     } catch (error) {
-      console.error('Virhe tallennettaessa kohdetta:', error);
-      Alert.alert('Virhe', 'Kohteen tallentaminen epäonnistui');
+      Alert.alert('Error', 'Failed to save the location');
     }
   };
 
@@ -76,27 +71,19 @@ export default function AddingNewLocation({ navigation }) {
           style={styles.input}
         />
         
-        <Subheading> </Subheading>
+        <Subheading>Rating:</Subheading>
         <Rating
-          type="star" // Voit käyttää myös muita tyyppejä kuten "heart", "custom" jne.
-          ratingCount={5} // Määrittelee tähtien määrän
-          imageSize={40} // Määrittelee tähtien koon
-          onFinishRating={setRating} // Funktio, joka vie arvion
-          startingValue={rating} // Näyttää käyttäjän nykyisen arvion
-          style={styles.rating} // Lisää tyylit
+          type="star"
+          ratingCount={5}
+          imageSize={40}
+          onFinishRating={setRating}
+          startingValue={rating}
+          style={styles.rating}
         />
 
         <Button mode="contained" onPress={saveLocation} style={styles.button} labelStyle={{ fontSize: 20 }}>
           Save
         </Button>
-
-        <Snackbar
-          visible={visibleSnackbar}
-          onDismiss={() => setVisibleSnackbar(false)}
-          duration={Snackbar.DURATION_SHORT}
-        >
-          {snackbarMessage}
-        </Snackbar>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -117,5 +104,3 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
 });
-
-

@@ -13,7 +13,7 @@ export default function MapViewScreen() {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          setErrorMessage('Sijaintilupia ei myönnetty.');
+          setErrorMessage('Location permission denied');
           setLoading(false);
           return;
         }
@@ -22,7 +22,7 @@ export default function MapViewScreen() {
         const { latitude, longitude } = coords;
         setCoordinates({ latitude, longitude });
       } catch (error) {
-        setErrorMessage('Virhe sijainnin hakemisessa: ' + error.message);
+        setErrorMessage('Error in fetching location: ' + error.message);
       } finally {
         setLoading(false);
       }
@@ -41,18 +41,15 @@ export default function MapViewScreen() {
           region={{
             latitude: coordinates.latitude,
             longitude: coordinates.longitude,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
+            latitudeDelta: 0.1,
+            longitudeDelta: 0.1,
           }}
         >
-          <Marker coordinate={coordinates} title="Nykyinen sijainti" />
+          <Marker coordinate={coordinates} title="Your Location" />
         </MapView>
       ) : (
-        <Text>{errorMessage || 'Ladataan karttaa...'}</Text>
+        <Text>{errorMessage || 'Loading...'}</Text>
       )}
     </View>
   );
 }
-
-
-

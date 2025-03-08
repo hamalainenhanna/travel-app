@@ -7,23 +7,20 @@ import { useFocusEffect } from '@react-navigation/native';
 export default function LocationsList({ navigation }) {
   const [locations, setLocations] = useState([]);
 
-  // Funktio, joka lataa kohteet AsyncStorageista
   const loadLocations = async () => {
     const storedLocations = await AsyncStorage.getItem("locations");
     if (storedLocations) setLocations(JSON.parse(storedLocations));
   };
 
-  // Käytetään useFocusEffectiä, jotta lataamme kohteet aina kun palaamme näkymään
   useFocusEffect(
     React.useCallback(() => {
       loadLocations();
     }, [])
   );
 
-  // Funktio tähtien näyttämiseen
   const renderStars = (rating) => {
     const fullStars = Math.max(1, Math.min(5, Math.round(rating)));
-    return '⭐'.repeat(fullStars); // Palautetaan tähtiä annetun arvion mukaan
+    return '⭐'.repeat(fullStars);
   };
 
   return (
@@ -39,8 +36,15 @@ export default function LocationsList({ navigation }) {
               <Paragraph>{renderStars(item.rating)}</Paragraph>
             </Card.Content>
             <Card.Actions>
-              <Button onPress={() => navigation.navigate("Map View", { locationName: item.name })}>
-                Map View
+              <Button
+                onPress={() =>
+                  navigation.navigate("ShowMap", {
+                    latitude: item.latitude,
+                    longitude: item.longitude,
+                    locationName: item.name
+                  })
+                }
+              > Show Map
               </Button>
             </Card.Actions>
           </Card>
@@ -49,4 +53,3 @@ export default function LocationsList({ navigation }) {
     </View>
   );
 }
-
